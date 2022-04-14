@@ -11,5 +11,5 @@ The Nvidia GPU sharing device plugin for Kubernetes is a Daemonset that allows y
 - Expose the GPU Memory and GPU count on the node of your cluster
 - Run GPU sharing enabled containers in your Kubernetes cluster.
 
-For more info, please refer [gpusharing scheduler extender](https://github.com/CERIT-SC/gpushare-scheduler-extender)
+For more info, please refer [gpusharing scheduler extender](https://github.com/CERIT-SC/nvidia-scheduler-extender)
 
