@@ -3,7 +3,7 @@ module gpushare-device-plugin
 go 1.13
 
 require (
-	github.com/AliyunContainerService/gpushare-device-plugin master
+	github.com/CERIT-SC/gpushare-device-plugin master
 	github.com/NVIDIA/gpu-monitoring-tools v0.0.0-20180829222009-86f2a9fac6c5
 	github.com/NVIDIA/nvidia-docker v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.4.9

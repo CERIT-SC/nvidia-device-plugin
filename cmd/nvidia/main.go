@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/AliyunContainerService/gpushare-device-plugin/pkg/gpu/nvidia"
-	"github.com/AliyunContainerService/gpushare-device-plugin/pkg/kubelet/client"
+	"github.com/CERIT-SC/gpushare-device-plugin/pkg/gpu/nvidia"
+	"github.com/CERIT-SC/gpushare-device-plugin/pkg/kubelet/client"
 	log "github.com/golang/glog"
 	"io/ioutil"
 	"k8s.io/client-go/rest"
