@@ -9,17 +9,17 @@ import (
 )
 
 const (
-	resourceName         = "aliyun.com/gpu-mem"
-	countName            = "aliyun.com/gpu-count"
-	gpuCountKey          = "aliyun.accelerator/nvidia_count"
-	cardNameKey          = "aliyun.accelerator/nvidia_name"
-	gpuMemKey            = "aliyun.accelerator/nvidia_mem"
+	resourceName         = "cerit.io/gpu-mem"
+	countName            = "cerit.io/gpu-count"
+	gpuCountKey          = "cerit.io/nvidia_count"
+	cardNameKey          = "cerit.io/nvidia_name"
+	gpuMemKey            = "cerit.io/nvidia_mem"
 	pluginComponentKey   = "component"
 	pluginComponentValue = "gpushare-device-plugin"
 
-	envNVGPUID             = "ALIYUN_COM_GPU_MEM_IDX"
-	envPodGPUMemory        = "ALIYUN_COM_GPU_MEM_POD"
-	envTOTALGPUMEMORY      = "ALIYUN_COM_GPU_MEM_DEV"
+	envNVGPUID             = "CERIT_IO_GPU_MEM_IDX"
+	envPodGPUMemory        = "CERIT_IO_GPU_MEM_POD"
+	envTOTALGPUMEMORY      = "CERIT_IO_GPU_MEM_DEV"
 	gpushareAllocationFlag = "scheduler.framework.gpushare.allocation"
 )
 

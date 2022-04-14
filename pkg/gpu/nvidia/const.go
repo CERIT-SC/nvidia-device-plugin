@@ -8,9 +8,9 @@ import (
 type MemoryUnit string
 
 const (
-	resourceName  = "aliyun.com/gpu-mem"
-	resourceCount = "aliyun.com/gpu-count"
-	serverSock    = pluginapi.DevicePluginPath + "aliyungpushare.sock"
+	resourceName  = "cerit.io/gpu-mem"
+	resourceCount = "cerit.io/gpu-count"
+	serverSock    = pluginapi.DevicePluginPath + "ceritioshare.sock"
 
 	OptimisticLockErrorMsg = "the object has been modified; please apply your changes to the latest version and try again"
 
@@ -22,13 +22,13 @@ const (
 	sandboxIDLabelKey           = "io.kubernetes.sandbox.id"
 
 	envNVGPU                   = "NVIDIA_VISIBLE_DEVICES"
-	EnvResourceIndex           = "ALIYUN_COM_GPU_MEM_IDX"
-	EnvResourceByPod           = "ALIYUN_COM_GPU_MEM_POD"
-	EnvResourceByContainer     = "ALIYUN_COM_GPU_MEM_CONTAINER"
-	EnvResourceByDev           = "ALIYUN_COM_GPU_MEM_DEV"
-	EnvAssignedFlag            = "ALIYUN_COM_GPU_MEM_ASSIGNED"
-	EnvResourceAssumeTime      = "ALIYUN_COM_GPU_MEM_ASSUME_TIME"
-	EnvResourceAssignTime      = "ALIYUN_COM_GPU_MEM_ASSIGN_TIME"
+	EnvResourceIndex           = "CERIT_IO_GPU_MEM_IDX"
+	EnvResourceByPod           = "CERIT_IO_GPU_MEM_POD"
+	EnvResourceByContainer     = "CERIT_IO_GPU_MEM_CONTAINER"
+	EnvResourceByDev           = "CERIT_IO_GPU_MEM_DEV"
+	EnvAssignedFlag            = "CERIT_IO_GPU_MEM_ASSIGNED"
+	EnvResourceAssumeTime      = "CERIT_IO_GPU_MEM_ASSUME_TIME"
+	EnvResourceAssignTime      = "CERIT_IO_GPU_MEM_ASSIGN_TIME"
 	EnvNodeLabelForDisableCGPU = "cgpu.disable.isolation"
 
 	GiBPrefix = MemoryUnit("GiB")
