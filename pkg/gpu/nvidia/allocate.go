@@ -2,6 +2,7 @@ package nvidia
 
 import (
 	"fmt"
+	"path/filepath"
 	"time"
 
 	log "github.com/golang/glog"
@@ -120,12 +121,20 @@ func (m *NvidiaDevicePlugin) Allocate(ctx context.Context,
 		reqGPU := uint(len(req.DevicesIDs))
 		response := pluginapi.ContainerAllocateResponse{
 			Envs: map[string]string{
-				envNVGPU:               candidateDevID,
 				EnvResourceIndex:       fmt.Sprintf("%d", id),
 				EnvResourceByPod:       fmt.Sprintf("%d", podReqGPU),
 				EnvResourceByContainer: fmt.Sprintf("%d", reqGPU),
 				EnvResourceByDev:       fmt.Sprintf("%d", getGPUMemory()),
 			},
+		}
+		if m.deviceListStrategy == DeviceListStrategyEnvvar {
+			response.Envs[envNVGPU] = candidateDevID
+		} else if m.deviceListStrategy == DeviceListStrategyVolumeMounts {
+			response.Envs[envNVGPU] = DeviceListContainerPath
+			response.Mounts = []*pluginapi.Mount{{
+				HostPath: DeviceListHostPath,
+				ContainerPath: filepath.Join(DeviceListContainerPath, candidateDevID),
+			}}
 		}
 		if m.disableCGPUIsolation {
 			response.Envs["CGPU_DISABLE"] = "true"
