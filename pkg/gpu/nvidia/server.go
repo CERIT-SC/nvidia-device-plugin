@@ -21,6 +21,7 @@ type NvidiaDevicePlugin struct {
 	realDevNames         []string
 	devNameMap           map[string]uint
 	devIndxMap           map[uint]string
+	deviceListStrategy   string
 	socket               string
 	mps                  bool
 	healthCheck          bool
@@ -35,7 +36,11 @@ type NvidiaDevicePlugin struct {
 }
 
 // NewNvidiaDevicePlugin returns an initialized NvidiaDevicePlugin
-func NewNvidiaDevicePlugin(mps, healthCheck, queryKubelet bool, client *client.KubeletClient) (*NvidiaDevicePlugin, error) {
+func NewNvidiaDevicePlugin(
+	mps, healthCheck, queryKubelet bool,
+	client *client.KubeletClient,
+	deviceListStrategy string,
+) (*NvidiaDevicePlugin, error) {
 	devs, devNameMap := getDevices()
 	devList := []string{}
 
@@ -58,6 +63,7 @@ func NewNvidiaDevicePlugin(mps, healthCheck, queryKubelet bool, client *client.K
 		devs:                 devs,
 		realDevNames:         devList,
 		devNameMap:           devNameMap,
+		deviceListStrategy:   deviceListStrategy,
 		socket:               serverSock,
 		mps:                  mps,
 		healthCheck:          healthCheck,

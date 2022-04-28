@@ -13,19 +13,26 @@ import (
 )
 
 type sharedGPUManager struct {
-	enableMPS     bool
-	healthCheck   bool
-	queryKubelet  bool
-	kubeletClient *client.KubeletClient
+	enableMPS          bool
+	healthCheck        bool
+	queryKubelet       bool
+	kubeletClient      *client.KubeletClient
+	deviceListStrategy string
 }
 
-func NewSharedGPUManager(enableMPS, healthCheck, queryKubelet bool, bp MemoryUnit, client *client.KubeletClient) *sharedGPUManager {
+func NewSharedGPUManager(
+	enableMPS, healthCheck, queryKubelet bool,
+	bp MemoryUnit,
+	client *client.KubeletClient,
+	deviceListStrategy string,
+) *sharedGPUManager {
 	metric = bp
 	return &sharedGPUManager{
-		enableMPS:     enableMPS,
-		healthCheck:   healthCheck,
-		queryKubelet:  queryKubelet,
-		kubeletClient: client,
+		enableMPS:          enableMPS,
+		healthCheck:        healthCheck,
+		queryKubelet:       queryKubelet,
+		kubeletClient:      client,
+		deviceListStrategy: deviceListStrategy,
 	}
 }
 
@@ -66,7 +73,13 @@ L:
 				devicePlugin.Stop()
 			}
 
-			devicePlugin, err = NewNvidiaDevicePlugin(ngm.enableMPS, ngm.healthCheck, ngm.queryKubelet, ngm.kubeletClient)
+			devicePlugin, err = NewNvidiaDevicePlugin(
+				ngm.enableMPS,
+				ngm.healthCheck,
+				ngm.queryKubelet,
+				ngm.kubeletClient,
+				ngm.deviceListStrategy,
+			)
 			if err != nil {
 				log.Warningf("Failed to get device plugin due to %v", err)
 			} else if err = devicePlugin.Serve(); err != nil {
