@@ -39,7 +39,7 @@ func NewNvidiaDevicePlugin(mps, healthCheck, queryKubelet bool, client *client.K
 	devs, devNameMap := getDevices()
 	devList := []string{}
 
-	for dev, _ := range devNameMap {
+	for dev := range devNameMap {
 		devList = append(devList, dev)
 	}
 
