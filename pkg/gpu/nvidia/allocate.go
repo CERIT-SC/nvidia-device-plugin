@@ -87,72 +87,71 @@ func (m *NvidiaDevicePlugin) Allocate(ctx context.Context,
 		}
 	}
 
-	if found {
-		id := getGPUIDFromPodAnnotation(assumePod)
-		if id < 0 {
-			log.Warningf("Failed to get the dev ", assumePod)
-		}
-
-		candidateDevID := ""
-		if id >= 0 {
-			ok := false
-			candidateDevID, ok = m.GetDeviceNameByIndex(uint(id))
-			if !ok {
-				log.Warningf("Failed to find the dev for pod %v because it's not able to find dev with index %d",
-					assumePod,
-					id)
-				id = -1
-			}
-		}
-
-		if id < 0 {
-			return buildErrResponse(reqs, podReqGPU), nil
-		}
-
-		// 1. Create container requests
-		for _, req := range reqs.ContainerRequests {
-			reqGPU := uint(len(req.DevicesIDs))
-			response := pluginapi.ContainerAllocateResponse{
-				Envs: map[string]string{
-					envNVGPU:               candidateDevID,
-					EnvResourceIndex:       fmt.Sprintf("%d", id),
-					EnvResourceByPod:       fmt.Sprintf("%d", podReqGPU),
-					EnvResourceByContainer: fmt.Sprintf("%d", reqGPU),
-					EnvResourceByDev:       fmt.Sprintf("%d", getGPUMemory()),
-				},
-			}
-			if m.disableCGPUIsolation {
-				response.Envs["CGPU_DISABLE"] = "true"
-			}
-			responses.ContainerResponses = append(responses.ContainerResponses, &response)
-		}
-
-		// 2. Update Pod spec
-		patchedAnnotationBytes, err := patchPodAnnotationSpecAssigned()
-		if err != nil {
-			return buildErrResponse(reqs, podReqGPU), nil
-		}
-		_, err = clientset.CoreV1().Pods(assumePod.Namespace).Patch(assumePod.Name, types.StrategicMergePatchType, patchedAnnotationBytes)
-		if err != nil {
-			// the object has been modified; please apply your changes to the latest version and try again
-			if err.Error() == OptimisticLockErrorMsg {
-				// retry
-				_, err = clientset.CoreV1().Pods(assumePod.Namespace).Patch(assumePod.Name, types.StrategicMergePatchType, patchedAnnotationBytes)
-				if err != nil {
-					log.Warningf("Failed due to %v", err)
-					return buildErrResponse(reqs, podReqGPU), nil
-				}
-			} else {
-				log.Warningf("Failed due to %v", err)
-				return buildErrResponse(reqs, podReqGPU), nil
-			}
-		}
-
-	} else {
+	if !found {
 		log.Warningf("invalid allocation requst: request GPU memory %d can't be satisfied.",
 			podReqGPU)
 		// return &responses, fmt.Errorf("invalid allocation requst: request GPU memory %d can't be satisfied", reqGPU)
 		return buildErrResponse(reqs, podReqGPU), nil
+	}
+
+	id := getGPUIDFromPodAnnotation(assumePod)
+	if id < 0 {
+		log.Warningf("Failed to get the dev ", assumePod)
+	}
+
+	candidateDevID := ""
+	if id >= 0 {
+		ok := false
+		candidateDevID, ok = m.GetDeviceNameByIndex(uint(id))
+		if !ok {
+			log.Warningf("Failed to find the dev for pod %v because it's not able to find dev with index %d",
+				assumePod,
+				id)
+			id = -1
+		}
+	}
+
+	if id < 0 {
+		return buildErrResponse(reqs, podReqGPU), nil
+	}
+
+	// 1. Create container requests
+	for _, req := range reqs.ContainerRequests {
+		reqGPU := uint(len(req.DevicesIDs))
+		response := pluginapi.ContainerAllocateResponse{
+			Envs: map[string]string{
+				envNVGPU:               candidateDevID,
+				EnvResourceIndex:       fmt.Sprintf("%d", id),
+				EnvResourceByPod:       fmt.Sprintf("%d", podReqGPU),
+				EnvResourceByContainer: fmt.Sprintf("%d", reqGPU),
+				EnvResourceByDev:       fmt.Sprintf("%d", getGPUMemory()),
+			},
+		}
+		if m.disableCGPUIsolation {
+			response.Envs["CGPU_DISABLE"] = "true"
+		}
+		responses.ContainerResponses = append(responses.ContainerResponses, &response)
+	}
+
+	// 2. Update Pod spec
+	patchedAnnotationBytes, err := patchPodAnnotationSpecAssigned()
+	if err != nil {
+		return buildErrResponse(reqs, podReqGPU), nil
+	}
+	_, err = clientset.CoreV1().Pods(assumePod.Namespace).Patch(assumePod.Name, types.StrategicMergePatchType, patchedAnnotationBytes)
+	if err != nil {
+		// the object has been modified; please apply your changes to the latest version and try again
+		if err.Error() == OptimisticLockErrorMsg {
+			// retry
+			_, err = clientset.CoreV1().Pods(assumePod.Namespace).Patch(assumePod.Name, types.StrategicMergePatchType, patchedAnnotationBytes)
+			if err != nil {
+				log.Warningf("Failed due to %v", err)
+				return buildErrResponse(reqs, podReqGPU), nil
+			}
+		} else {
+			log.Warningf("Failed due to %v", err)
+			return buildErrResponse(reqs, podReqGPU), nil
+		}
 	}
 
 	podName := ""
