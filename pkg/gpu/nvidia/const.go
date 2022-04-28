@@ -31,6 +31,12 @@ const (
 	EnvResourceAssignTime      = "CERIT_IO_GPU_MEM_ASSIGN_TIME"
 	EnvNodeLabelForDisableCGPU = "cgpu.disable.isolation"
 
+	DeviceListStrategyEnvvar       = "envvar"
+	DeviceListStrategyVolumeMounts = "volume-mounts"
+
+	DeviceListHostPath      = "/dev/null"
+	DeviceListContainerPath = "/var/run/nvidia-container-devices"
+
 	GiBPrefix = MemoryUnit("GiB")
 	MiBPrefix = MemoryUnit("MiB")
 )
