@@ -138,18 +138,20 @@ func (m *NvidiaDevicePlugin) Allocate(ctx context.Context,
 	if err != nil {
 		return buildErrResponse(reqs, podReqGPU), nil
 	}
-	_, err = clientset.CoreV1().Pods(assumePod.Namespace).Patch(assumePod.Name, types.StrategicMergePatchType, patchedAnnotationBytes)
-	if err != nil {
-		// the object has been modified; please apply your changes to the latest version and try again
-		if err.Error() == OptimisticLockErrorMsg {
-			// retry
-			_, err = clientset.CoreV1().Pods(assumePod.Namespace).Patch(assumePod.Name, types.StrategicMergePatchType, patchedAnnotationBytes)
-			if err != nil {
-				log.Warningf("Failed due to %v", err)
-				return buildErrResponse(reqs, podReqGPU), nil
-			}
-		} else {
-			log.Warningf("Failed due to %v", err)
+	// Try patching the pod multiple times
+	triesLeft := 3
+	for triesLeft > 0 {
+		triesLeft--
+		_, err = clientset.CoreV1().Pods(assumePod.Namespace).Patch(
+			assumePod.Name,
+			types.StrategicMergePatchType,
+			patchedAnnotationBytes,
+		)
+		if err == nil {
+			break
+		}
+		if err.Error() != OptimisticLockErrorMsg || triesLeft == 0 {
+			log.Warningf("Failed pathching pod due to %v", err)
 			return buildErrResponse(reqs, podReqGPU), nil
 		}
 	}
