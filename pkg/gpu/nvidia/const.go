@@ -10,6 +10,7 @@ type MemoryUnit string
 const (
 	resourceName  = "cerit.io/gpu-mem"
 	resourceCount = "cerit.io/gpu-count"
+	resourceNvidia = "nvidia.com/gpu"
 	serverSock    = pluginapi.DevicePluginPath + "ceritioshare.sock"
 
 	OptimisticLockErrorMsg = "the object has been modified; please apply your changes to the latest version and try again"
