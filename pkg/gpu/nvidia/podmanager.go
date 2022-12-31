@@ -77,18 +77,18 @@ func patchGPUCount(gpuCount int) error {
 		return err
 	}
 
-	if val, ok := node.Status.Capacity[resourceCount]; ok {
-		if val.Value() == int64(gpuCount) {
-			log.Infof("No need to update Capacity %s", resourceCount)
-			return nil
-		}
+	valc, okc := node.Status.Capacity[resourceCount]
+	valn, okn := node.Status.Capacity[resourceNvidia]
+	if okc && okn && valc.Value() == int64(gpuCount) && valn.Value() == int64(0) {
+		log.Infof("No need to update Capacity %s", resourceCount)
+		return nil
 	}
 
 	newNode := node.DeepCopy()
 	newNode.Status.Capacity[resourceCount] = *resource.NewQuantity(int64(gpuCount), resource.DecimalSI)
 	newNode.Status.Allocatable[resourceCount] = *resource.NewQuantity(int64(gpuCount), resource.DecimalSI)
-	newNode.Status.Capacity[resourceNvidia] = *resource.NewQuantity(int64(gpuCount), resource.DecimalSI)
-	newNode.Status.Allocatable[resourceNvidia] = *resource.NewQuantity(int64(gpuCount), resource.DecimalSI)
+	newNode.Status.Capacity[resourceNvidia] = *resource.NewQuantity(int64(0), resource.DecimalSI)
+	newNode.Status.Allocatable[resourceNvidia] = *resource.NewQuantity(int64(0), resource.DecimalSI)
 	// content := fmt.Sprintf(`[{"op": "add", "path": "/status/capacity/aliyun.com~gpu-count", "value": "%d"}]`, gpuCount)
 	// _, err = clientset.CoreV1().Nodes().PatchStatus(nodeName, []byte(content))
 	_, _, err = nodeutil.PatchNodeStatus(clientset.CoreV1(), types.NodeName(nodeName), node, newNode)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"time"
+	"os"
 
 	log "github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -54,6 +55,7 @@ func (m *NvidiaDevicePlugin) Allocate(ctx context.Context,
 	// podReqGPU = uint(0)
 	for _, req := range reqs.ContainerRequests {
 		podReqGPU += uint(len(req.DevicesIDs))
+
 	}
 	log.Infof("RequestPodGPUs: %d", podReqGPU)
 
@@ -77,7 +79,7 @@ func (m *NvidiaDevicePlugin) Allocate(ctx context.Context,
 	}
 
 	for _, pod := range pods {
-		if getGPUMemoryFromPodResource(pod) == podReqGPU {
+		if getGPUMemoryFromPodResource(pod) > 0 {
 			log.Infof("Found Assumed GPU shared Pod %s in ns %s with GPU Memory %d",
 				pod.Name,
 				pod.Namespace,
@@ -85,11 +87,14 @@ func (m *NvidiaDevicePlugin) Allocate(ctx context.Context,
 			assumePod = pod
 			found = true
 			break
+		} else {
+			log.Infof("No asseumed GPU shared Pod %s in ns %s with GPU Memory %d, and should have %d",
+			     pod.Name, pod.Namespace, podReqGPU, getGPUMemoryFromPodResource(pod))
 		}
 	}
 
 	if !found {
-		log.Warningf("invalid allocation requst: request GPU memory %d can't be satisfied.",
+		log.Warningf("invalid allocation requst: request GPU memory %d can't be satisfied",
 			podReqGPU)
 		// return &responses, fmt.Errorf("invalid allocation requst: request GPU memory %d can't be satisfied", reqGPU)
 		return buildErrResponse(reqs, podReqGPU), nil
@@ -136,6 +141,8 @@ func (m *NvidiaDevicePlugin) Allocate(ctx context.Context,
 				ContainerPath: filepath.Join(DeviceListContainerPath, candidateDevID),
 			}}
 		}
+		// TODO: make /run/nvidia/driver configurable
+		response.Devices = m.apiDeviceSpecs("/run/nvidia/driver", id)
 		if m.disableCGPUIsolation {
 			response.Envs["CGPU_DISABLE"] = "true"
 		}
@@ -178,3 +185,38 @@ func (m *NvidiaDevicePlugin) Allocate(ctx context.Context,
 
 	return &responses, nil
 }
+
+// TODO: support more devices
+func (m *NvidiaDevicePlugin) apiDeviceSpecs(driverRoot string, ids int) []*pluginapi.DeviceSpec {
+        var specs []*pluginapi.DeviceSpec
+
+        paths := []string{
+                "/dev/nvidiactl",
+                "/dev/nvidia-uvm",
+                "/dev/nvidia-uvm-tools",
+                "/dev/nvidia-modeset",
+        }
+
+        for _, p := range paths {
+                if _, err := os.Stat(p); err == nil {
+                        spec := &pluginapi.DeviceSpec{
+                                ContainerPath: p,
+                                HostPath:      filepath.Join(driverRoot, p),
+                                Permissions:   "rw",
+                        }
+                        specs = append(specs, spec)
+                }
+        }
+
+	dev := fmt.Sprintf("/dev/nvidia%d", ids)
+
+        spec := &pluginapi.DeviceSpec{
+                  ContainerPath: dev,
+                  HostPath:      filepath.Join(driverRoot, dev),
+                  Permissions:   "rw",
+        }
+        specs = append(specs, spec)
+
+        return specs
+}
+
